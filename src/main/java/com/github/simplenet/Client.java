@@ -58,9 +58,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -380,11 +378,15 @@ public class Client extends AbstractReceiver<Runnable> implements Channeled<Asyn
      * @throws IllegalArgumentException  If {@code port} is less than 0 or greater than 65535.
      * @throws AlreadyConnectedException If a {@link Client} is already connected to any address/port.
      */
-    public final void connect(String address, int port) {
+    public final void connect(String address, int port, ExecutorService executorService) {
         connect(address, port, 30L, TimeUnit.SECONDS, () ->
-            LOGGER.warn("Couldn't connect to the server! Maybe it's offline?"));
+            LOGGER.warn("Couldn't connect to the server! Maybe it's offline?"),executorService);
     }
+    public final void connect(String address, int port ) {
 
+        connect(address, port, 30L, TimeUnit.SECONDS, () ->
+                LOGGER.warn("Couldn't connect to the server! Maybe it's offline?"), Executors.newSingleThreadExecutor());
+    }
     /**
      * Attempts to connect to a {@link Server} with the specified {@code address} and {@code port} and a specified
      * timeout. If the timeout is reached, then the {@link Runnable} is run and the backing
@@ -396,27 +398,27 @@ public class Client extends AbstractReceiver<Runnable> implements Channeled<Asyn
      * @param unit      The timeout unit.
      * @param onTimeout The {@link Runnable} that runs if this connection attempt times out.
      */
-    public final void connect(String address, int port, long timeout, TimeUnit unit, Runnable onTimeout) {
+    public final void connect(String address, int port, long timeout, TimeUnit unit, Runnable onTimeout,ExecutorService executorService) {
         Objects.requireNonNull(address);
 
         if (port < 0 || port > 65_535) {
             throw new IllegalArgumentException("The specified port must be between 0 and 65535!");
         }
 
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), runnable -> {
-            Thread thread = new Thread(runnable);
-            thread.setDaemon(false);
-            thread.setName(thread.getName().replace("Thread", "SimpleNet"));
-            
-            return thread;
-        }, (runnable, threadPoolExecutor) -> {});
-
-        // Start one core thread in advance to prevent the JVM from shutting down.
-        executor.prestartCoreThread();
+//        ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
+//                new LinkedBlockingQueue<>(), runnable -> {
+//            Thread thread = new Thread(runnable);
+//            thread.setDaemon(false);
+//            thread.setName(thread.getName().replace("Thread", "SimpleNet"));
+//
+//            return thread;
+//        }, (runnable, threadPoolExecutor) -> {});
+//
+//        // Start one core thread in advance to prevent the JVM from shutting down.
+//        executor.prestartCoreThread();
 
         try {
-            this.channel = AsynchronousSocketChannel.open(group = AsynchronousChannelGroup.withThreadPool(executor));
+            this.channel = AsynchronousSocketChannel.open(group = AsynchronousChannelGroup.withThreadPool(executorService));
             this.channel.setOption(StandardSocketOptions.SO_RCVBUF, BUFFER_SIZE);
             this.channel.setOption(StandardSocketOptions.SO_SNDBUF, BUFFER_SIZE);
             this.channel.setOption(StandardSocketOptions.SO_KEEPALIVE, false);
@@ -434,8 +436,11 @@ public class Client extends AbstractReceiver<Runnable> implements Channeled<Asyn
             close(false);
             return;
         }
-        
-        executor.execute(() -> connectListeners.forEach(Runnable::run));
+//        if (connectListeners.size() > 0) {
+//            executor.execute(() -> connectListeners.forEach(Runnable::run));
+//        } else {
+//            System.out.println("no connectListeners...");
+//        }
     }
 
     /**
@@ -450,7 +455,7 @@ public class Client extends AbstractReceiver<Runnable> implements Channeled<Asyn
             return;
         }
 
-        preDisconnectListeners.forEach(Runnable::run);
+//        preDisconnectListeners.forEach(Runnable::run);
 
         if (waitForWrite) {
             flush();
@@ -466,7 +471,7 @@ public class Client extends AbstractReceiver<Runnable> implements Channeled<Asyn
             Thread.onSpinWait();
         }
 
-        postDisconnectListeners.forEach(Runnable::run);
+//        postDisconnectListeners.forEach(Runnable::run);
 
         if (group != null) {
             try {
@@ -500,20 +505,20 @@ public class Client extends AbstractReceiver<Runnable> implements Channeled<Asyn
      *
      * @param listener A {@link Runnable}.
      */
-    public final void preDisconnect(Runnable listener) {
-        preDisconnectListeners.add(listener);
-    }
+//    public final void preDisconnect(Runnable listener) {
+//        preDisconnectListeners.add(listener);
+//    }
 
     /**
      * Registers a listener that fires right after a {@link Client} disconnects from a {@link Server}.
      * <br><br>
      * Calling this method more than once registers multiple listeners.
      *
-     * @param listener A {@link Runnable}.
+//     * @param listener A {@link Runnable}.
      */
-    public final void postDisconnect(Runnable listener) {
-        postDisconnectListeners.add(listener);
-    }
+//    public final void postDisconnect(Runnable listener) {
+//        postDisconnectListeners.add(listener);
+//    }
     
     @Override
     public void readUntil(int n, Predicate<ByteBuffer> predicate, ByteOrder order) {

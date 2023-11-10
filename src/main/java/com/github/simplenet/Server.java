@@ -140,8 +140,8 @@ public class Server extends AbstractReceiver<Consumer<Client>> implements Channe
                 public void completed(AsynchronousSocketChannel channel, Void attachment) {
                     Client client = new Client(channel);
                     connectedClients.add(client);
-                    client.postDisconnect(() -> connectedClients.remove(client));
-                    connectListeners.forEach(consumer -> consumer.accept(client));
+//                    client.postDisconnect(() -> connectedClients.remove(client));
+//                    connectListeners.forEach(consumer -> consumer.accept(client));
                     Server.this.channel.accept(null, this); // Should this be first?
                 }
 

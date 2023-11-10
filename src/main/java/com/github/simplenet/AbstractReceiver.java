@@ -36,27 +36,27 @@ abstract class AbstractReceiver<T> {
     /**
      * Listeners that are fired when a {@link Client} connects to a {@link Server}.
      */
-    final Collection<T> connectListeners;
+//    final Collection<T> connectListeners;
 
     /**
      * Listeners that are fired right before a {@link Client} disconnects
      * from a {@link Server}.
      */
-    final Collection<T> preDisconnectListeners;
+//    final Collection<T> preDisconnectListeners;
 
     /**
      * Listeners that are fired right after a {@link Client} disconnects
      * from a {@link Server}.
      */
-    final Collection<T> postDisconnectListeners;
+//    final Collection<T> postDisconnectListeners;
 
     /**
      * Instantiates a new {@link AbstractReceiver} with a buffer capacity of {@code bufferSize}.
      */
     AbstractReceiver() {
-        this.connectListeners = new CopyOnWriteArrayList<>();
-        this.preDisconnectListeners = new CopyOnWriteArrayList<>();
-        this.postDisconnectListeners = new CopyOnWriteArrayList<>();
+//        this.connectListeners = new CopyOnWriteArrayList<>();
+//        this.preDisconnectListeners = new CopyOnWriteArrayList<>();
+//        this.postDisconnectListeners = new CopyOnWriteArrayList<>();
     }
     
     /**
@@ -66,9 +66,9 @@ abstract class AbstractReceiver<T> {
      * @param <U> A {@link AbstractReceiver} or one of its children.
      */
     <U extends AbstractReceiver<T>> AbstractReceiver(U receiver) {
-        this.connectListeners = receiver.connectListeners;
-        this.preDisconnectListeners = receiver.preDisconnectListeners;
-        this.postDisconnectListeners = receiver.postDisconnectListeners;
+//        this.connectListeners = receiver.connectListeners;
+//        this.preDisconnectListeners = receiver.preDisconnectListeners;
+//        this.postDisconnectListeners = receiver.postDisconnectListeners;
     }
 
     /**
@@ -79,6 +79,6 @@ abstract class AbstractReceiver<T> {
      * @param listener A {@link T}.
      */
     public final void onConnect(T listener) {
-        connectListeners.add(listener);
+//        connectListeners.add(listener);
     }
 }
